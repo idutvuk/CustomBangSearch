@@ -24,6 +24,11 @@ import { Virtuoso } from "react-virtuoso";
 import * as config from "../../lib/config/config";
 import * as storage from "../../lib/config/storage/storage";
 import { setBangInfoLookup } from "../../background/lookup";
+import {
+	getBangComparableKeywords,
+	getStaticKeyboardLayoutReverseMaps,
+	keywordsOverlap,
+} from "../../lib/bangMatching";
 import defaultConfig from "../../lib/config/default";
 import { notifications } from "@mantine/notifications";
 
@@ -80,19 +85,34 @@ const sortBangInfos = (
 	});
 };
 
-function findDuplicateBangs(
+function findDuplicateBangIds(
 	bangs: config.BangInfo[],
-	ignoreCase: boolean,
+	options: Pick<
+		config.Options,
+		"ignoreBangCase" | "ignoreBangKeyboardLayout"
+	>,
 ): Set<string> {
-	const seen = new Set<string>();
+	const reverseMaps = options.ignoreBangKeyboardLayout
+		? getStaticKeyboardLayoutReverseMaps()
+		: [];
+	const seen = new Map<string, ReadonlySet<string>>();
 	const dupes = new Set<string>();
+
 	for (const bang of bangs) {
-		const keyword = ignoreCase ? bang.keyword.toLowerCase() : bang.keyword;
-		if (seen.has(keyword)) {
-			dupes.add(keyword);
+		const comparableKeywords = getBangComparableKeywords(
+			bang.keyword,
+			options,
+			reverseMaps,
+		);
+		for (const [seenBangId, seenComparableKeywords] of seen.entries()) {
+			if (keywordsOverlap(comparableKeywords, seenComparableKeywords)) {
+				dupes.add(seenBangId);
+				dupes.add(bang.id);
+			}
 		}
-		seen.add(keyword);
+		seen.set(bang.id, comparableKeywords);
 	}
+
 	return dupes;
 }
 
@@ -100,15 +120,21 @@ interface Props {
 	initialBangs: config.BangInfo[];
 	setInitialConfig: Dispatch<SetStateAction<config.Config>>;
 	ignoreBangCase: boolean;
+	ignoreBangKeyboardLayout: boolean;
 }
 
 export default function BangsTabPanel(props: Props) {
-	const { initialBangs, setInitialConfig, ignoreBangCase } = props;
+	const {
+		initialBangs,
+		setInitialConfig,
+		ignoreBangCase,
+		ignoreBangKeyboardLayout,
+	} = props;
 
 	const [warning, setWarning] = useState<string | null>(null);
-	const [keywordsWithDuplicates, setKeywordsWithDuplicates] = useState<
-		Set<string>
-	>(new Set());
+	const [bangIdsWithDuplicates, setBangIdsWithDuplicates] = useState<Set<string>>(
+		new Set(),
+	);
 
 	const [needToSave, setNeedToSave] = useState(false);
 	const [sortOrder, setSortOrder] = useLocalStorage<sortOrders>(
@@ -132,17 +158,20 @@ export default function BangsTabPanel(props: Props) {
 			JSON.stringify(sortedBangInfos) !== JSON.stringify(sortedInitialBangs),
 		);
 
-		const dupes = findDuplicateBangs(bangInfos, ignoreBangCase);
+		const dupes = findDuplicateBangIds(bangInfos, {
+			ignoreBangCase,
+			ignoreBangKeyboardLayout,
+		});
 		if (dupes.size !== 0) {
 			setWarning(
-				"You have bangs with duplicate keywords which may lead to unintended behaviour - use an alias instead",
+				"You have bangs with duplicate or equivalent keywords which may lead to unintended behaviour - use an alias instead",
 			);
-			setKeywordsWithDuplicates(dupes);
+			setBangIdsWithDuplicates(dupes);
 		} else {
 			setWarning(null);
-			setKeywordsWithDuplicates(new Set());
+			setBangIdsWithDuplicates(new Set());
 		}
-	}, [bangInfos, initialBangs, ignoreBangCase]);
+	}, [bangInfos, initialBangs, ignoreBangCase, ignoreBangKeyboardLayout]);
 
 	// Use initialBangs in the dependency array, instead of bangInfos, so that we
 	// only do this auto-sort when the user saves (or on load). bangInfo changes
@@ -259,14 +288,12 @@ export default function BangsTabPanel(props: Props) {
 					index={index}
 					onChange={bangInfoChanged}
 					onRemove={() => removeBang(bang.id)}
-					showWarning={keywordsWithDuplicates.has(
-						ignoreBangCase ? bang.keyword.toLowerCase() : bang.keyword,
-					)}
+					showWarning={bangIdsWithDuplicates.has(bang.id)}
 					lastInList={index === bangInfos.length - 1}
 				/>
 			);
 		},
-		[bangInfos, keywordsWithDuplicates, ignoreBangCase],
+		[bangIdsWithDuplicates, bangInfos],
 	);
 
 	return (

@@ -134,6 +134,9 @@ export function App() {
 								initialBangs={initialConfig.bangs}
 								setInitialConfig={setInitialConfig}
 								ignoreBangCase={initialConfig.options.ignoreBangCase}
+								ignoreBangKeyboardLayout={
+									initialConfig.options.ignoreBangKeyboardLayout
+								}
 							/>
 						)}
 					</Tabs.Panel>

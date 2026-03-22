@@ -72,7 +72,7 @@ export async function getConfig(): Promise<config.Config> {
 	const storeMan = await getStorageManager();
 	const compressed = await storeMan.get();
 	const decompressed = compression.decompressConfigFromString(compressed);
-	return Promise.resolve(decompressed);
+	return Promise.resolve(config.withConfigDefaults(decompressed));
 }
 
 /**

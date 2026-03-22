@@ -57,6 +57,8 @@ export default function BangsTabPanel(props: Props) {
 	const [ignoreBangCase, setIgnoreBangCase] = useState<boolean>(
 		initialOptions.ignoreBangCase,
 	);
+	const [ignoreBangKeyboardLayout, setIgnoreBangKeyboardLayout] =
+		useState<boolean>(initialOptions.ignoreBangKeyboardLayout);
 
 	function ignoredDomainsListAsArray(): Array<string> {
 		return Object.keys(ignoredDomainsList).filter(
@@ -73,7 +75,8 @@ export default function BangsTabPanel(props: Props) {
 				initialOptions.storageMethod !== storageMethod ||
 				initialOptions.ignoredSearchDomains.length !==
 					ignoredDomainsListAsArray().length ||
-				initialOptions.ignoreBangCase !== ignoreBangCase,
+				initialOptions.ignoreBangCase !== ignoreBangCase ||
+				initialOptions.ignoreBangKeyboardLayout !== ignoreBangKeyboardLayout,
 		);
 	}, [
 		initialOptions,
@@ -81,6 +84,7 @@ export default function BangsTabPanel(props: Props) {
 		storageMethod,
 		ignoredDomainsList,
 		ignoreBangCase,
+		ignoreBangKeyboardLayout,
 	]);
 
 	const saveOptions = async () => {
@@ -100,6 +104,7 @@ export default function BangsTabPanel(props: Props) {
 			cfg.options.storageMethod = storageMethod;
 			cfg.options.ignoredSearchDomains = ignoredDomainsListAsArray();
 			cfg.options.ignoreBangCase = ignoreBangCase;
+			cfg.options.ignoreBangKeyboardLayout = ignoreBangKeyboardLayout;
 
 			await storage.updateStorageManagerMethod(storageMethod);
 			await storage.storeConfig(cfg);
@@ -144,6 +149,7 @@ export default function BangsTabPanel(props: Props) {
 			),
 		);
 		setIgnoreBangCase(defaultCfg.options.ignoreBangCase);
+		setIgnoreBangKeyboardLayout(defaultCfg.options.ignoreBangKeyboardLayout);
 	};
 
 	const handleIgnoredSwitchChanged =
@@ -238,6 +244,21 @@ export default function BangsTabPanel(props: Props) {
 				<Text>
 					For example, if active, the bangs <Code>a</Code> and <Code>A</Code>{" "}
 					will be equivalent
+				</Text>
+			</Stack>
+			<Stack style={{ marginTop: "1em" }}>
+				<Group>
+					<Title order={3}>Keyboard Layout Insensitive Bangs</Title>
+					<Switch
+						checked={ignoreBangKeyboardLayout}
+						onChange={(e) => {
+							setIgnoreBangKeyboardLayout(e.currentTarget.checked);
+						}}
+					/>
+				</Group>
+				<Text>
+					If active, bangs typed in another keyboard layout will be translated
+					back to their Latin key positions before matching
 				</Text>
 			</Stack>
 			<Group style={{ marginTop: "1em" }}>

@@ -45,12 +45,7 @@ function _getEbayUrlByLocale(): string {
 
 const cfg: config.Config = {
 	version: config.currentConfigVersion,
-	options: {
-		trigger: "!",
-		storageMethod: "sync",
-		ignoredSearchDomains: [],
-		ignoreBangCase: false,
-	},
+	options: { ...config.defaultOptions },
 	bangs: [
 		{
 			id: crypto.randomUUID(),

@@ -3,6 +3,11 @@ import browser, { type WebRequest } from "webextension-polyfill";
 import { currentBrowser } from "../lib/esbuilddefinitions";
 import type * as config from "../lib/config/config";
 import * as storage from "../lib/config/storage/storage";
+import {
+	getBangComparableKeywords,
+	getKeyboardLayoutReverseMaps,
+	keywordsOverlap,
+} from "../lib/bangMatching";
 import debug from "../lib/misc";
 
 import { getBangInfoLookup } from "./lookup";
@@ -139,19 +144,32 @@ export async function getRedirects(
 	// Get all relevant URLs to redirect to / open.
 	const redirectionBangInfos: config.BangInfo[] = [];
 
-	if (opts.ignoreBangCase) {
-		const allKeys = Object.keys(lookup).filter(
-			(key) => key.toLowerCase() === keywordUsed.toLowerCase(),
-		);
-		for (const k of allKeys) {
-			redirectionBangInfos.push(lookup[k]);
-		}
-	} else {
-		// If we don't ignore case, then there will only be one entry
+	if (!opts.ignoreBangCase && !opts.ignoreBangKeyboardLayout) {
+		// If we're doing exact matching only, then there will only be one entry.
 		redirectionBangInfos.push(lookup[keywordUsed]);
+	} else {
+		const reverseMaps = opts.ignoreBangKeyboardLayout
+			? await getKeyboardLayoutReverseMaps()
+			: [];
+		const comparableKeywordUsed = getBangComparableKeywords(
+			keywordUsed,
+			opts,
+			reverseMaps,
+		);
+
+		for (const [lookupKeyword, bangInfo] of Object.entries(lookup)) {
+			const comparableLookupKeyword = getBangComparableKeywords(
+				lookupKeyword,
+				opts,
+				reverseMaps,
+			);
+			if (keywordsOverlap(comparableKeywordUsed, comparableLookupKeyword)) {
+				redirectionBangInfos.push(bangInfo);
+			}
+		}
 	}
 
-	if (redirectionBangInfos.length === 0) {
+	if (redirectionBangInfos.length === 0 || redirectionBangInfos[0] === undefined) {
 		return [];
 	}
 

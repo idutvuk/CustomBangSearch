@@ -16,10 +16,20 @@ export interface Options {
 	ignoredSearchDomains: string[];
 	// If true, ignore bang case
 	ignoreBangCase: boolean;
+	// If true, treat keyboard-layout equivalents as the same bang
+	ignoreBangKeyboardLayout: boolean;
 	// TODO: Support this?
 	// If non-empty, this is used to split queries into multiple searches on every URL
 	// querySeparator: string;
 }
+
+export const defaultOptions: Readonly<Options> = {
+	trigger: "!",
+	storageMethod: "sync",
+	ignoredSearchDomains: [],
+	ignoreBangCase: false,
+	ignoreBangKeyboardLayout: false,
+};
 
 export interface UrlInfo {
 	// Hidden to the user, uniquely identifies this URL (mainly useful for the React code)
@@ -63,6 +73,46 @@ export type BangsExport = {
 	version: number;
 	bangs: BangInfoExport[];
 };
+
+export function withDefaultOptions(
+	options: Partial<Options> | null | undefined,
+): Options {
+	const optionsWithPossibleDefaults = options ?? {};
+
+	return {
+		...defaultOptions,
+		...optionsWithPossibleDefaults,
+		trigger:
+			typeof optionsWithPossibleDefaults.trigger === "string"
+				? optionsWithPossibleDefaults.trigger
+				: defaultOptions.trigger,
+		storageMethod: allowedStorageMethodsAsArray.includes(
+			optionsWithPossibleDefaults.storageMethod as allowedStorageMethodsAsType,
+		)
+			? (optionsWithPossibleDefaults.storageMethod as allowedStorageMethodsAsType)
+			: defaultOptions.storageMethod,
+		ignoredSearchDomains: Array.isArray(
+			optionsWithPossibleDefaults.ignoredSearchDomains,
+		)
+			? [...optionsWithPossibleDefaults.ignoredSearchDomains]
+			: [...defaultOptions.ignoredSearchDomains],
+		ignoreBangCase:
+			typeof optionsWithPossibleDefaults.ignoreBangCase === "boolean"
+				? optionsWithPossibleDefaults.ignoreBangCase
+				: defaultOptions.ignoreBangCase,
+		ignoreBangKeyboardLayout:
+			typeof optionsWithPossibleDefaults.ignoreBangKeyboardLayout === "boolean"
+				? optionsWithPossibleDefaults.ignoreBangKeyboardLayout
+				: defaultOptions.ignoreBangKeyboardLayout,
+	};
+}
+
+export function withConfigDefaults(cfg: Config): Config {
+	return {
+		...cfg,
+		options: withDefaultOptions(cfg.options),
+	};
+}
 
 export function bangInfosFromExport(bangs: BangInfoExport[]): BangInfo[] {
 	return bangs.map((bang) => ({
