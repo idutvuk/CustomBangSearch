@@ -13,13 +13,14 @@
  *
  */
 
-import { parseArgs } from "node:util";
 import assert from "node:assert";
+import path from "node:path";
+import { parseArgs } from "node:util";
 
-import { execa } from "execa";
-import { Listr } from "listr2";
-import fs from "fs-extra";
 import * as esbuild from "esbuild";
+import { execa } from "execa";
+import fs from "fs-extra";
+import { Listr } from "listr2";
 
 const manifestShared = JSON.parse(
 	fs.readFileSync("./manifest.shared.json", "utf8"),
@@ -88,6 +89,75 @@ const postcss = [
 
 const buildPath = "./build";
 
+async function commandExists(command) {
+	const result = await execa(command, ["--version"], { reject: false });
+	return result.exitCode === 0 && result.failed === false;
+}
+
+async function getArchiver() {
+	if (await commandExists("7z")) {
+		return "7z";
+	}
+
+	if (await commandExists("zip")) {
+		return "zip";
+	}
+
+	if (process.platform === "win32") {
+		const result = await execa(
+			"powershell",
+			["-NoProfile", "-Command", "Get-Command Compress-Archive | Out-Null"],
+			{ reject: false },
+		);
+		if (result.exitCode === 0 && result.failed === false) {
+			return "powershell";
+		}
+	}
+
+	throw new Error(
+		"No supported archiver found. Install 7-Zip, use a system 'zip' binary, or run from PowerShell with Compress-Archive available.",
+	);
+}
+
+function quotePowerShellString(value) {
+	return `'${value.replaceAll("'", "''")}'`;
+}
+
+async function createZip(archiver, zipName, inputPaths, options = {}) {
+	const absoluteZipPath = path.resolve(zipName);
+	const cwd = options.cwd;
+
+	if (archiver === "7z") {
+		const archiveInputs = cwd
+			? inputPaths.map((inputPath) => path.relative(cwd, inputPath))
+			: inputPaths;
+		return execa("7z", ["a", "-tzip", absoluteZipPath, ...archiveInputs], {
+			cwd,
+		});
+	}
+
+	if (archiver === "zip") {
+		const archiveInputs = cwd
+			? inputPaths.map((inputPath) => path.relative(cwd, inputPath))
+			: inputPaths;
+		return execa("zip", ["-r", absoluteZipPath, ...archiveInputs], { cwd });
+	}
+
+	if (archiver === "powershell") {
+		const archiveInputs = cwd
+			? inputPaths.map((inputPath) => path.resolve(cwd, inputPath))
+			: inputPaths.map((inputPath) => path.resolve(inputPath));
+		const paths = archiveInputs.map(quotePowerShellString).join(", ");
+		return execa("powershell", [
+			"-NoProfile",
+			"-Command",
+			`Compress-Archive -Path ${paths} -DestinationPath ${quotePowerShellString(absoluteZipPath)} -Force`,
+		]);
+	}
+
+	throw new Error(`Unsupported archiver: ${archiver}`);
+}
+
 const {
 	values: { browser, dev, buildzip, sourcezip },
 } = parseArgs({
@@ -135,9 +205,11 @@ const tasks = new Listr([
 			new Listr(
 				[
 					{
-						title: "7zip",
+						title: "archiver",
 						skip: () => !buildzip && !sourcezip,
-						task: () => execa("7z", ["i"]),
+						task: async (ctx) => {
+							ctx.archiver = await getArchiver();
+						},
 					},
 					{
 						title: "git",
@@ -293,11 +365,13 @@ const tasks = new Listr([
 	{
 		title: "Create build zip file",
 		skip: () => !buildzip,
-		task: (ctx) => {
+		task: async (ctx) => {
 			const zipName = `custombangsearch-${browser}-${extensionVersion}-${ctx.gitHeadShortHash}-${ctx.gitState}.zip`;
-			return execa("7z", ["a", `-tzip ${zipName}`, `${buildPath}/*`], {
-				shell: true,
-			});
+			const buildEntries = await fs.readdir(buildPath);
+			const buildInputs = buildEntries.map((entry) =>
+				path.join(buildPath, entry),
+			);
+			return createZip(ctx.archiver, zipName, buildInputs, { cwd: buildPath });
 		},
 	},
 	{
@@ -305,11 +379,7 @@ const tasks = new Listr([
 		skip: () => !sourcezip,
 		task: (ctx) => {
 			const zipName = `custombangsearch-${browser}-${extensionVersion}-${ctx.gitHeadShortHash}-${ctx.gitState}-source.zip`;
-			return execa(
-				"7z",
-				["a", `-tzip ${zipName}`, `${sourceFiles.join(" ")}`],
-				{ shell: true },
-			);
+			return createZip(ctx.archiver, zipName, sourceFiles);
 		},
 	},
 ]);
