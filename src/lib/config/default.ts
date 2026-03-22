@@ -8,6 +8,7 @@ function getUrlByLocale(table: Record<string, string>): string {
 	return table[locale] || table[locale.split("-")[0]] || table.default;
 }
 
+// keep this as example
 function getAmazonUrlByLocale(): string {
 	// TODO: More locale support?
 	return getUrlByLocale({
@@ -53,88 +54,6 @@ const cfg: config.Config = {
 	bangs: [
 		{
 			id: crypto.randomUUID(),
-			keyword: "a",
-			alias: null,
-			defaultUrl: getAmazonUrlByLocale(),
-			urls: [
-				{
-					id: crypto.randomUUID(),
-					url: `${getAmazonUrlByLocale()}s?k=%s`,
-				},
-			],
-			dontEncodeQuery: false,
-		},
-		{
-			id: crypto.randomUUID(),
-			keyword: "az",
-			alias: "a",
-			defaultUrl: "",
-			urls: [
-				{
-					id: crypto.randomUUID(),
-					url: "",
-				},
-			],
-			dontEncodeQuery: false,
-		},
-		{
-			id: crypto.randomUUID(),
-			keyword: "e",
-			alias: null,
-			defaultUrl: getEbayUrlByLocale(),
-			urls: [
-				{
-					id: crypto.randomUUID(),
-					url: `${getEbayUrlByLocale()}sch/i.html?_nkw=%s`,
-				},
-			],
-			dontEncodeQuery: false,
-		},
-		{
-			id: crypto.randomUUID(),
-			keyword: "ea",
-			alias: null,
-			defaultUrl: "",
-			urls: [
-				{
-					id: crypto.randomUUID(),
-					url: "https://amazon.co.uk/s?k=%s",
-				},
-				{
-					id: crypto.randomUUID(),
-					url: "https://www.ebay.co.uk/sch/i.html?_nkw=%s",
-				},
-			],
-			dontEncodeQuery: false,
-		},
-		{
-			id: crypto.randomUUID(),
-			keyword: "et",
-			alias: null,
-			defaultUrl: "https://www.etsy.com/",
-			urls: [
-				{
-					id: crypto.randomUUID(),
-					url: "https://www.etsy.com/search?q=%s",
-				},
-			],
-			dontEncodeQuery: false,
-		},
-		{
-			id: crypto.randomUUID(),
-			keyword: "t",
-			alias: null,
-			defaultUrl: "https://www.twitch.tv/",
-			urls: [
-				{
-					id: crypto.randomUUID(),
-					url: "https://www.twitch.tv/search?term=%s",
-				},
-			],
-			dontEncodeQuery: false,
-		},
-		{
-			id: crypto.randomUUID(),
 			keyword: "y",
 			alias: null,
 			defaultUrl: "https://www.youtube.com/",
@@ -142,32 +61,6 @@ const cfg: config.Config = {
 				{
 					id: crypto.randomUUID(),
 					url: "https://www.youtube.com/results?search_query=%s",
-				},
-			],
-			dontEncodeQuery: false,
-		},
-		{
-			id: crypto.randomUUID(),
-			keyword: "av",
-			alias: null,
-			defaultUrl: "https://www.amazon.co.uk/gp/video/storefront",
-			urls: [
-				{
-					id: crypto.randomUUID(),
-					url: "https://amazon.co.uk/s?k=%s&i=instant-video",
-				},
-			],
-			dontEncodeQuery: false,
-		},
-		{
-			id: crypto.randomUUID(),
-			keyword: "n",
-			alias: null,
-			defaultUrl: "https://www.netflix.com/browse",
-			urls: [
-				{
-					id: crypto.randomUUID(),
-					url: "https://www.netflix.com/search?q=%s",
 				},
 			],
 			dontEncodeQuery: false,
@@ -252,7 +145,7 @@ const cfg: config.Config = {
 		},
 		{
 			id: crypto.randomUUID(),
-			keyword: "git",
+			keyword: "gh",
 			alias: null,
 			defaultUrl: "https://github.com/",
 			urls: [
@@ -324,6 +217,19 @@ const cfg: config.Config = {
 				{
 					id: crypto.randomUUID(),
 					url: "https://www.wolframalpha.com/input/?i=%s",
+				},
+			],
+			dontEncodeQuery: false,
+		},
+		{
+			id: crypto.randomUUID(),
+			keyword: "ya",
+			alias: null,
+			defaultUrl: "https://ya.ru",
+			urls: [
+				{
+					id: crypto.randomUUID(),
+					url: "https://yandex.ru/search/?text=%s",
 				},
 			],
 			dontEncodeQuery: false,
