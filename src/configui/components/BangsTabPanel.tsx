@@ -1,4 +1,4 @@
-import React, {
+import {
 	useState,
 	useEffect,
 	useCallback,
@@ -147,7 +147,7 @@ export default function BangsTabPanel(props: Props) {
 	// Use initialBangs in the dependency array, instead of bangInfos, so that we
 	// only do this auto-sort when the user saves (or on load). bangInfo changes
 	// on user input, initialBangs changes when user presses save button
-	// biome-ignore lint/correctness/useExhaustiveDependencies:
+	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional deps; adding bangInfos would re-run on every keystroke
 	useEffect(() => {
 		setBangInfosWithSort(bangInfos);
 	}, [initialBangs, sortOrder]);
@@ -249,7 +249,7 @@ export default function BangsTabPanel(props: Props) {
 	};
 
 	// Don't depend on the functions because they change every render
-	// biome-ignore lint/correctness/useExhaustiveDependencies:
+	// biome-ignore lint/correctness/useExhaustiveDependencies: stable list identity; omit unstable callbacks to avoid Virtuoso thrash
 	const virtuosoRenderBang = useCallback(
 		(index: number) => {
 			const bang = bangInfos[index];

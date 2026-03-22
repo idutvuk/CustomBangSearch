@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Title, Box, Group, Text, Stack } from "@mantine/core";
 import browser from "webextension-polyfill";
 
@@ -8,7 +8,7 @@ import PermissionsRequester from "../../lib/components/PermissionsRequester";
 import type { allowedStorageMethodsAsType } from "../../lib/config/config";
 
 const BROWSER_QUOTA_BYTES_PER_ITEM =
-	// @ts-ignore: The chrome namespace will be available if this check passes
+	// @ts-expect-error: The chrome namespace will be available if this check passes
 	currentBrowser === "chrome" ? chrome.storage.sync.QUOTA_BYTES : 102400;
 
 interface Props {
@@ -32,11 +32,11 @@ export default function ConfigHeader(props: Props) {
 
 	useEffect(() => {
 		const updateSize = () => {
-			// @ts-ignore: getBytesInUse is not in the type, but is implemented in
-			// some browsers
-			if (browser.storage.local.getBytesInUse) {
-				// @ts-ignore: We check if the func exists first!
-				browser.storage.local.getBytesInUse().then(setStoredSizeLocal);
+			const local = browser.storage.local as typeof browser.storage.local & {
+				getBytesInUse?: () => Promise<number>;
+			};
+			if (local.getBytesInUse) {
+				void local.getBytesInUse().then(setStoredSizeLocal);
 			}
 		};
 		updateSize();

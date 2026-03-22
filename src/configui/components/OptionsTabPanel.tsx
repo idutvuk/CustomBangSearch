@@ -1,4 +1,4 @@
-import React, {
+import {
 	type ChangeEvent,
 	type Dispatch,
 	type SetStateAction,
@@ -66,7 +66,7 @@ export default function BangsTabPanel(props: Props) {
 
 	// The vaule of the variable ignoredDomainsListAsArray does not indicate if we
 	// have something to save or not, dont include in effect deps
-	// biome-ignore lint/correctness/useExhaustiveDependencies:
+	// biome-ignore lint/correctness/useExhaustiveDependencies: compare via ignoredDomainsList only; function identity would false-positive dirty state
 	useEffect(() => {
 		setNeedToSave(
 			initialOptions.trigger !== triggerText ||

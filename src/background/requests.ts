@@ -171,11 +171,10 @@ export async function getRedirects(
  */
 export async function processRequest(
 	r: WebRequest.OnBeforeRequestDetailsType,
-	// biome-ignore lint/suspicious/noConfusingVoidType:
-): Promise<void | WebRequest.BlockingResponse> {
+): Promise<undefined | WebRequest.BlockingResponse> {
 	if (r.type !== "main_frame") {
 		// Any request that's not of type main_frame is very unlikely to be of use
-		return Promise.resolve();
+		return;
 	}
 
 	let cfg: config.Config;
@@ -187,20 +186,20 @@ export async function processRequest(
 			"Could not get config:",
 			error instanceof Error ? error.message : "",
 		);
-		return Promise.resolve();
+		return;
 	}
 
 	debug("Request", r, "\nConfig", cfg);
 
 	if (shouldReject(cfg.options.ignoredSearchDomains, r.url)) {
-		return Promise.resolve();
+		return;
 	}
 
 	// From the current URL, get the redirections (if any) to apply.
 	const redirections = await getRedirects(r, cfg.options);
 
 	if (redirections.length === 0) {
-		return Promise.resolve();
+		return;
 	}
 
 	// Open all URLs (except the first) in new tabs
@@ -215,12 +214,12 @@ export async function processRequest(
 		browser.tabs.update(r.tabId, { url: redirections[0] });
 
 		if (currentBrowser === "firefox") {
-			return Promise.resolve({ cancel: true });
+			return { cancel: true };
 		}
 
-		return Promise.resolve();
+		return;
 	}
 
 	// This is a GET request, we are on firefox, so send a blocking response.
-	return Promise.resolve({ redirectUrl: redirections[0] });
+	return { redirectUrl: redirections[0] };
 }

@@ -1,4 +1,3 @@
-import React from "react";
 import { Button, FileButton } from "@mantine/core";
 import { FolderUp } from "lucide-react";
 

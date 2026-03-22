@@ -9,7 +9,7 @@ function getUrlByLocale(table: Record<string, string>): string {
 }
 
 // keep this as example
-function getAmazonUrlByLocale(): string {
+function _getAmazonUrlByLocale(): string {
 	// TODO: More locale support?
 	return getUrlByLocale({
 		"en-GB": "https://www.amazon.co.uk/",
@@ -25,7 +25,7 @@ function getAmazonUrlByLocale(): string {
 	});
 }
 
-function getEbayUrlByLocale(): string {
+function _getEbayUrlByLocale(): string {
 	return getUrlByLocale({
 		"en-GB": "https://www.ebay.co.uk/",
 		"en-US": "https://www.ebay.com/",

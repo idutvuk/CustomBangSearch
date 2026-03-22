@@ -28,24 +28,27 @@ export function decompressConfigFromString(str: string): config.Config {
 		throw new Error("Failed to decompress string");
 	}
 
-	let parsed = undefined;
+	let parsed: unknown;
 	try {
 		parsed = JSON.parse(decompressed);
 	} catch {
 		throw new Error("Failed to parse JSON from decompressed string");
 	}
 
+	if (parsed === null || typeof parsed !== "object") {
+		throw new Error("The given JSON is not a valid Config");
+	}
+
+	const rec = parsed as Record<string, unknown>;
 	if (
-		parsed === null ||
-		typeof parsed !== "object" ||
-		typeof parsed.version !== "number" ||
-		typeof parsed.options !== "object" ||
-		!Array.isArray(parsed.bangs) ||
+		typeof rec.version !== "number" ||
+		typeof rec.options !== "object" ||
+		!Array.isArray(rec.bangs) ||
 		// TODO: This fn will need to allow config version migration in the future
-		parsed.version !== config.currentConfigVersion
+		rec.version !== config.currentConfigVersion
 	) {
 		throw new Error("The given JSON is not a valid Config");
 	}
 
-	return parsed as config.Config;
+	return rec as unknown as config.Config;
 }

@@ -6,7 +6,7 @@
       "dom"
     ],
     "strict": true,
-    "jsx": "react",
+    "jsx": "react-jsx",
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "node",
     "resolveJsonModule": true

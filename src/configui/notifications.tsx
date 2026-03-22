@@ -1,5 +1,3 @@
-import React from "react";
-
 import { notifications } from "@mantine/notifications";
 import { Check, X } from "lucide-react";
 

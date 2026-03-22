@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import browser from "webextension-polyfill";
 import { Button } from "@mantine/core";
 

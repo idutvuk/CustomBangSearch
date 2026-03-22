@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import { memo } from "react";
 import { Button, Divider, Group, Input, Stack, Switch } from "@mantine/core";
 import { Plus, Trash, TriangleAlert } from "lucide-react";
 
@@ -129,7 +129,7 @@ function RealBangConfigurator(props: Props) {
 						style={{ width: "10em" }}
 					/>
 					<Stack gap="xs">
-						{bang.urls.map((url, i) => (
+						{bang.urls.map((url) => (
 							<Group key={url.id}>
 								<Input
 									value={url.url}

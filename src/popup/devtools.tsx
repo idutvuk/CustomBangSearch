@@ -1,4 +1,3 @@
-import React from "react";
 import { Stack, Button, Text } from "@mantine/core";
 import browser from "webextension-polyfill";
 
