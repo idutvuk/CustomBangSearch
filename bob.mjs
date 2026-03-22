@@ -62,7 +62,7 @@ const sourceFiles = [
 	"./manifest.chrome.json",
 	"./manifest.firefox.json",
 	"./manifest.shared.json",
-	"./package-lock.json",
+	"./bun.lock",
 	"./package.json",
 	"./postcss.config.cjs",
 	"./README.md",
@@ -136,6 +136,7 @@ const tasks = new Listr([
 				[
 					{
 						title: "7zip",
+						skip: () => !buildzip && !sourcezip,
 						task: () => execa("7z", ["i"]),
 					},
 					{
@@ -149,12 +150,12 @@ const tasks = new Listr([
 	{
 		title: "Run lint",
 		skip: () => dev,
-		task: () => execa("npm", ["run", "lint"]),
+		task: () => execa("bun", ["run", "lint"]),
 	},
 	{
 		title: "Run tsc -noEmit",
 		skip: () => dev,
-		task: () => execa("npm", ["run", "tsc-noemit"]),
+		task: () => execa("bun", ["run", "tsc-noemit"]),
 	},
 	{
 		title: "Setup build directory",
@@ -267,7 +268,7 @@ const tasks = new Listr([
 		task: async () => {
 			const calls = [];
 			for (const { src, dst } of postcss) {
-				calls.push(execa("npx", ["postcss", src, "-o", dst]));
+				calls.push(execa("bunx", ["postcss", src, "-o", dst]));
 			}
 			return Promise.all(calls);
 		},
