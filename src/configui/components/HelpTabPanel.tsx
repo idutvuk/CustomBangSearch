@@ -50,7 +50,7 @@ export default function HelpTabPanel() {
 				</Text>
 				<BangConfigurator
 					bang={
-						defaultConfig().bangs.find((b) => b.keyword === "a") as BangInfo
+						defaultConfig().bangs.find((b) => b.keyword === "m") as BangInfo
 					}
 					index={0}
 					onChange={() => {}}
